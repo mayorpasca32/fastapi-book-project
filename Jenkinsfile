@@ -3,7 +3,7 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git 'https://github.com/mayorpasca32/fastapi-book-project.git'
+                git branch: 'main', url: 'https://github.com/mayorpasca32/fastapi-book-project.git'
             }
         }
         stage('Run Tests') {
