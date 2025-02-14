@@ -1,3 +1,4 @@
+from typing import List  # ✅ Import List for Python 3.8 compatibility
 from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import JSONResponse
 from api.db.schemas import Book, Genre, InMemoryDB
@@ -29,7 +30,7 @@ async def get_book(book_id: int):
         raise HTTPException(status_code=404, detail="Book not found")
     return book
 
-@router.get("/api/v1/books", response_model=list[Book], status_code=status.HTTP_200_OK)
+@router.get("/api/v1/books", response_model=List[Book], status_code=status.HTTP_200_OK)  # ✅ Fixed List[Book]
 async def get_books():
     """Retrieve all books."""
     return list(db.books.values())
