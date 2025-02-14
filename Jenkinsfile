@@ -9,7 +9,7 @@ pipeline {
         stage('Run Tests') {
             steps {
                 sh 'pip3 install -r requirements.txt'
-                sh 'pytest'
+                sh 'export PATH=/home/ubuntu/.local/bin:$PATH && pytest'
             }
         }
         stage('Build Docker Image') {
@@ -24,4 +24,3 @@ pipeline {
         }
     }
 }
-
