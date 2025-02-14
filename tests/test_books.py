@@ -1,5 +1,11 @@
 from tests import client
 from api.main import app
+import sys
+import os
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from api.main import app
 
 
 @app.get("/books/{book_id}")
