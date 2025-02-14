@@ -1,4 +1,6 @@
 from tests import client
+from api.main import app
+
 
 @app.get("/books/{book_id}")
 def get_book(book_id: int):
