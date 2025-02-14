@@ -6,7 +6,20 @@ from fastapi.responses import JSONResponse
 
 from api.db.schemas import Book, Genre, InMemoryDB
 
+from fastapi import APIRouter, HTTPException
+from api.db.schemas import Book
+
+
+
 router = APIRouter()
+
+@router.get("/api/v1/books/{book_id}")
+async def get_book(book_id: int):
+    book = next((book for book in Book.books if book.id == book_id), None)
+    if book:
+        return book
+    raise HTTPException(status_code=404, detail="Book not found")
+
 
 db = InMemoryDB()
 db.books = {
