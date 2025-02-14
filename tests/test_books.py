@@ -1,5 +1,12 @@
 from tests import client
 
+@app.get("/books/{book_id}")
+def get_book(book_id: int):
+    return {"book_id": book_id}
+
+@app.delete("/books/{book_id}")
+def delete_book(book_id: int):
+    return Response(status_code=204)
 
 def test_get_all_books():
     response = client.get("/books/")
@@ -50,3 +57,4 @@ def test_delete_book():
 
     response = client.get("/books/3")
     assert response.status_code == 404
+
