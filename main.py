@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.router import api_router
-
 from core.config import settings
+
 
 app = FastAPI()
 
@@ -21,3 +21,11 @@ app.include_router(api_router, prefix=settings.API_PREFIX)
 async def health_check():
     """Checks if server is active."""
     return {"status": "active"}
+
+@app.get("/books/{book_id}")
+def get_book(book_id: int):
+    return {"book_id": book_id}
+
+@app.delete("/books/{book_id}")
+def delete_book(book_id: int):
+    return Response(status_code=204)
