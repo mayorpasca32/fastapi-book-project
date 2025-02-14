@@ -3,7 +3,14 @@ from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import JSONResponse
 from api.db.schemas import Book, Genre, InMemoryDB
 
+from fastapi import APIRouter
+
 router = APIRouter()
+
+@router.get("/")
+async def get_books():
+    return [{"id": 1, "title": "Example Book"}]
+
 
 # Initialize in-memory database
 db = InMemoryDB()
