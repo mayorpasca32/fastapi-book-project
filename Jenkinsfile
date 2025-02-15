@@ -24,7 +24,7 @@ pipeline {
 
                     # Check if the server is running (retry if necessary)
                     for i in {1..5}; do
-                        curl -I http://127.0.0.1:8000/books/ && break || sleep 2
+                        curl -X GET -I http://127.0.0.1:8000/books/ || curl -X GET http://127.0.0.1:8000/books/
                     done
                 '''
             }
