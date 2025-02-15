@@ -1,54 +1,57 @@
 pipeline {
     agent any
+
+    environment {
+        DOCKER_IMAGE = "fastapi-app"
+        CONTAINER_NAME = "fastapi-container"
+        APP_PORT = "8000"
+    }
+
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/mayorpasca32/fastapi-book-project.git'
+                script {
+                    checkout scm
+                }
             }
         }
-        
+
         stage('Run Tests') {
             steps {
-                sh '''
-                    # Kill any existing Uvicorn process running on port 8000
-                    PID=$(lsof -ti :8000) && [ -n "$PID" ] && kill -9 $PID || echo "No process found on port 8000"
-
-                    # Ensure dependencies are installed
-                    pip3 install -r requirements.txt  
-
-                    # Start Uvicorn in the background properly
-                    nohup python3 -m uvicorn main:app --host 0.0.0.0 --port 8000 > uvicorn.log 2>&1 &  
-
-                    # Wait for Uvicorn to start
-                    sleep 5  
-
-                    # Check if the server is running (retry if necessary)
-                    for i in {1..5}; do
-                        curl -X GET -I http://127.0.0.1:8000/books/ || curl -X GET http://127.0.0.1:8000/books/
-                    done
-                '''
+                script {
+                    sh '''
+                        lsof -ti :${APP_PORT} | xargs -r kill -9
+                        pip3 install -r requirements.txt
+                        nohup python3 -m uvicorn api.main:app --host 0.0.0.0 --port ${APP_PORT} &
+                        sleep 5
+                        curl -X GET -I http://127.0.0.1:${APP_PORT}/books/
+                    '''
+                }
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh '''
-                    # Stop and remove old Docker container (if running)
-                    docker stop fastapi-container || true
-                    docker rm fastapi-container || true
-
-                    # Build new Docker image
-                    docker build -t fastapi-app .
-                '''
+                script {
+                    sh '''
+                        docker stop ${CONTAINER_NAME} || true
+                        docker rm ${CONTAINER_NAME} || true
+                        docker buildx create --use || true
+                        docker build --progress=plain -t ${DOCKER_IMAGE} .
+                    '''
+                }
             }
         }
 
         stage('Deploy') {
             steps {
-                sh '''
-                    # Run new Docker container
-                    docker run -d -p 8000:8000 --name fastapi-container fastapi-app
-                '''
+                script {
+                    sh '''
+                        docker stop ${CONTAINER_NAME} || true
+                        docker rm ${CONTAINER_NAME} || true
+                        docker run -d --name ${CONTAINER_NAME} -p ${APP_PORT}:${APP_PORT} ${DOCKER_IMAGE}
+                    '''
+                }
             }
         }
     }
