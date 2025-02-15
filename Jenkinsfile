@@ -34,16 +34,27 @@ pipeline {
             steps {
                 script {
                     sh '''
-                        docker stop fastapi-container || true
-                        docker rm fastapi-container || true
-            
-                        export DOCKER_BUILDKIT=1  # Enable BuildKit
-                        docker build -t fastapi-app .
+                        docker stop ${CONTAINER_NAME} || true
+                        docker rm ${CONTAINER_NAME} || true
+
+                        # Ensure Docker Buildx is available
+                        docker buildx version || {
+                            echo "Docker Buildx is missing. Installing..."
+                            mkdir -p ~/.docker/cli-plugins
+                            curl -L https://github.com/docker/buildx/releases/latest/download/buildx-linux-amd64 -o ~/.docker/cli-plugins/docker-buildx
+                            chmod +x ~/.docker/cli-plugins/docker-buildx
+                        }
+
+                        # Use Buildx with the default builder
+                        docker buildx create --use --name mybuilder || true
+                        docker buildx use mybuilder
+
+                        # Build the image using Buildx
+                        DOCKER_BUILDKIT=1 docker buildx build --platform linux/amd64 -t ${DOCKER_IMAGE} .
                     '''
                 }
             }
         }
-
 
         stage('Deploy') {
             steps {
