@@ -34,14 +34,16 @@ pipeline {
             steps {
                 script {
                     sh '''
-                        docker stop ${CONTAINER_NAME} || true
-                        docker rm ${CONTAINER_NAME} || true
-                        docker buildx create --use || true
-                        docker build --progress=plain -t ${DOCKER_IMAGE} .
+                        docker stop fastapi-container || true
+                        docker rm fastapi-container || true
+            
+                        export DOCKER_BUILDKIT=1  # Enable BuildKit
+                        docker build -t fastapi-app .
                     '''
                 }
             }
         }
+
 
         stage('Deploy') {
             steps {
