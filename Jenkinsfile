@@ -8,13 +8,15 @@ pipeline {
         }
         stage('Run Tests') {
             steps {
-                sh "pip3 install -r requirements.txt"
-                sh 'uvicorn main:app --host 0.0.0.0 --port 8000 &'
-                sh 'sleep 5'  // Allow time for the server to start
-                sh 'curl -I http://127.0.0.1:8000/books/'  // Check if it's running
-                sh 'python3 -m pytest'
+                sh '''
+                    pip3 install -r requirements.txt  # Ensure dependencies are installed
+                    python3 -m uvicorn main:app --host 0.0.0.0 --port 8000 &  # Use Python to launch Uvicorn
+                    sleep 5  # Give it time to start
+                    curl -I http://127.0.0.1:8000/books/  # Check if the server is running
+                '''
             }
         }
+
         stage('Build Docker Image') {
             steps {
                 sh 'docker build -t fastapi-app .'
