@@ -20,11 +20,22 @@ pipeline {
             steps {
                 script {
                     sh '''
-                        lsof -ti :${APP_PORT} | xargs -r kill -9
+                        echo "Stopping any process using port ${APP_PORT}..."
+                        lsof -ti :${APP_PORT} | xargs -r kill -9 || true
+
+                        echo "Installing dependencies..."
                         pip3 install -r requirements.txt
-                        nohup python3 -m uvicorn api.main:app --host 0.0.0.0 --port ${APP_PORT} &
+
+                        echo "Starting FastAPI server for tests..."
+                        nohup python3 -m uvicorn api.main:app --host 0.0.0.0 --port ${APP_PORT} > fastapi.log 2>&1 &
                         sleep 5
-                        curl -X GET -I http://127.0.0.1:${APP_PORT}/books/
+
+                        echo "Testing API Endpoint..."
+                        if curl -X GET -I http://127.0.0.1:${APP_PORT}/books/ | grep '200 OK'; then
+                            echo "Test passed!"
+                        else
+                            echo "Test failed!" && exit 1
+                        fi
                     '''
                 }
             }
@@ -34,23 +45,18 @@ pipeline {
             steps {
                 script {
                     sh '''
+                        echo "Stopping existing container if running..."
                         docker stop ${CONTAINER_NAME} || true
                         docker rm ${CONTAINER_NAME} || true
 
-                        # Ensure Docker Buildx is available
-                        docker buildx version || {
-                            echo "Docker Buildx is missing. Installing..."
-                            mkdir -p ~/.docker/cli-plugins
-                            curl -L https://github.com/docker/buildx/releases/latest/download/buildx-linux-amd64 -o ~/.docker/cli-plugins/docker-buildx
-                            chmod +x ~/.docker/cli-plugins/docker-buildx
-                        }
+                        echo "Checking if Docker is installed..."
+                        if ! command -v docker &> /dev/null; then
+                            echo "Docker not found! Please install Docker first."
+                            exit 1
+                        fi
 
-                        # Use Buildx with the default builder
-                        docker buildx create --use --name mybuilder || true
-                        docker buildx use mybuilder
-
-                        # Build the image using Buildx
-                        DOCKER_BUILDKIT=1 docker buildx build --platform linux/amd64 -t ${DOCKER_IMAGE} .
+                        echo "Building Docker image..."
+                        docker build -t ${DOCKER_IMAGE} .
                     '''
                 }
             }
@@ -60,6 +66,7 @@ pipeline {
             steps {
                 script {
                     sh '''
+                        echo "Deploying container..."
                         docker stop ${CONTAINER_NAME} || true
                         docker rm ${CONTAINER_NAME} || true
                         docker run -d --name ${CONTAINER_NAME} -p ${APP_PORT}:${APP_PORT} ${DOCKER_IMAGE}
