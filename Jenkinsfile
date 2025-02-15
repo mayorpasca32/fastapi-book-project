@@ -10,20 +10,22 @@ pipeline {
         stage('Run Tests') {
             steps {
                 sh '''
-                    # Kill any process using port 8000 (if exists)
+                    # Kill any existing Uvicorn process running on port 8000
                     PID=$(lsof -ti :8000) && [ -n "$PID" ] && kill -9 $PID || echo "No process found on port 8000"
 
                     # Ensure dependencies are installed
                     pip3 install -r requirements.txt  
 
-                    # Start Uvicorn in the background
+                    # Start Uvicorn in the background properly
                     nohup python3 -m uvicorn main:app --host 0.0.0.0 --port 8000 > uvicorn.log 2>&1 &  
 
                     # Wait for Uvicorn to start
                     sleep 5  
 
-                    # Check if the server is running
-                    curl -X GET -I http://127.0.0.1:8000/books/    
+                    # Check if the server is running (retry if necessary)
+                    for i in {1..5}; do
+                        curl -I http://127.0.0.1:8000/books/ && break || sleep 2
+                    done
                 '''
             }
         }
