@@ -59,12 +59,13 @@ pipeline {
             steps {
                 script {
                     sh '''
-                        docker stop ${CONTAINER_NAME} || true
-                        docker rm ${CONTAINER_NAME} || true
-                        docker run -d --name ${CONTAINER_NAME} -p ${APP_PORT}:${APP_PORT} ${DOCKER_IMAGE}
-                    '''
+                      sudo fuser -k 8000/tcp || true
+                      docker stop ${CONTAINER_NAME} || true
+                      docker rm ${CONTAINER_NAME} || true
+                      docker run -d --name ${CONTAINER_NAME} -p ${APP_PORT}:${APP_PORT} ${DOCKER_IMAGE}
+                  '''
                 }
-            }
-        }
-    }
+             }
+        }    
+     }
 }
