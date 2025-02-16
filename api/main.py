@@ -7,6 +7,14 @@ from api.router import api_router
 # Initialize FastAPI app
 app = FastAPI()
 
+@app.get("/api/v1/books/{book_id}")
+def get_book(book_id: int):
+    books = {
+        1: {"title": "Book One", "author": "Author One"},
+        2: {"title": "Book Two", "author": "Author Two"},
+    }
+    return books.get(book_id, {"error": "Book not found"})
+
 # Middleware should be added before routes
 app.add_middleware(
     CORSMiddleware,
