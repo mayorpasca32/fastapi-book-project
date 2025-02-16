@@ -60,6 +60,10 @@ pipeline {
                         echo "Stopping existing container if running..."
                         docker stop ${CONTAINER_NAME} || true
                         docker rm ${CONTAINER_NAME} || true
+                        /usr/bin/docker stop fastapi-container || true
+                        /usr/bin/docker rm fastapi-container || true
+                        /usr/bin/docker build -t my-image .
+
 
                         echo "Checking if Docker is installed..."
                         if ! /usr/bin/docker --version &> /dev/null; then
