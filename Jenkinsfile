@@ -59,11 +59,18 @@ pipeline {
             steps {
                 script {
                     sh '''
-                      sudo fuser -k 8000/tcp || true
-                      docker stop ${CONTAINER_NAME} || true
-                      docker rm ${CONTAINER_NAME} || true
-                      docker run -d --name ${CONTAINER_NAME} -p ${APP_PORT}:${APP_PORT} ${DOCKER_IMAGE}
-                  '''
+                        echo "Checking for processes using port ${APP_PORT}..."
+                        pkill -f "uvicorn" || true  # Kills any existing Uvicorn process
+                        pkill -f "python3 -m uvicorn" || true  # Handles different command variations
+                        sleep 3  # Give it time to stop
+                
+                        echo "Stopping any running Docker container..."
+                        docker stop ${CONTAINER_NAME} || true
+                        docker rm ${CONTAINER_NAME} || true
+                
+                        echo "Starting new container..."
+                        docker run -d --name ${CONTAINER_NAME} -p ${APP_PORT}:${APP_PORT} ${DOCKER_IMAGE}
+                    '''
                 }
              }
         }    
