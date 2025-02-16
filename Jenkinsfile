@@ -27,7 +27,6 @@ pipeline {
                         pip3 install --no-cache-dir -r requirements.txt
                         pip3 install --no-cache-dir websockets  # Add this line
 
-
                         echo "Starting FastAPI server for tests..."
                         nohup python3 -m uvicorn api.main:app --host 0.0.0.0 --port ${APP_PORT} > fastapi.log 2>&1 &
                         sleep 10  # ⬅ Increase sleep time to give FastAPI time to start
@@ -65,6 +64,12 @@ pipeline {
                             echo "Docker not found! Please install Docker first."
                             exit 1
                         fi
+
+                        echo "Checking user and groups for debugging..."
+                        whoami
+                        groups
+                        command -v docker || echo "Docker not found!"
+                        docker info || echo "Docker command failed!"
 
                         echo "Building Docker image..."
                         docker build -t ${DOCKER_IMAGE} .
