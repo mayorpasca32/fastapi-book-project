@@ -25,11 +25,12 @@ pipeline {
 
                         echo "Installing dependencies..."
                         pip3 install --no-cache-dir -r requirements.txt
-                        pip3 install --no-cache-dir websockets  # Add this line
+                        pip3 install --no-cache-dir websockets  
 
                         echo "Starting FastAPI server for tests..."
+                        cd ${WORKSPACE}  # Ensure Jenkins is in the correct directory
                         nohup python3 -m uvicorn api.main:app --host 0.0.0.0 --port ${APP_PORT} > fastapi.log 2>&1 &
-                        sleep 10  # ⬅ Increase sleep time to give FastAPI time to start
+                        sleep 10
 
                         echo "Checking if FastAPI is running..."
                         if ! lsof -i :${APP_PORT}; then
@@ -50,6 +51,7 @@ pipeline {
                 }
             }
         }
+
 
         stage('Build Docker Image') {
             steps {
