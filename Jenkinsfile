@@ -62,7 +62,7 @@ pipeline {
                         docker rm ${CONTAINER_NAME} || true
 
                         echo "Checking if Docker is installed..."
-                        if ! command -v docker &> /dev/null; then
+                        if ! /usr/bin/docker --version &> /dev/null; then
                             echo "Docker not found! Please install Docker first."
                             exit 1
                         fi
@@ -74,7 +74,9 @@ pipeline {
                         docker info || echo "Docker command failed!"
 
                         echo "Building Docker image..."
-                        docker build -t ${DOCKER_IMAGE} .
+                        /usr/bin/docker stop ${CONTAINER_NAME} || true
+                        /usr/bin/docker rm ${CONTAINER_NAME} || true
+                        /usr/bin/docker build -t ${DOCKER_IMAGE} .
                     '''
                 }
             }
