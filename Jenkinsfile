@@ -69,7 +69,7 @@ pipeline {
                         docker rm ${CONTAINER_NAME} || true
                 
                         echo "Starting new container..."
-                        docker run -d --name ${CONTAINER_NAME} -p ${APP_PORT}:${APP_PORT} ${DOCKER_IMAGE}
+                        docker run -d --name fastapi-container -p 127.0.0.1:8000:8000 fastapi-app
                     '''
                 }
              }
